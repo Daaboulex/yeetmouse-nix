@@ -55,7 +55,12 @@ stdenv.mkDerivation {
     fi
   '';
 
-  LD_LIBRARY_PATH = "/run/opengl-driver/lib:${lib.makeLibraryPath [ stdenv.cc.cc.lib glfw3 ]}";
+  LD_LIBRARY_PATH = "/run/opengl-driver/lib:${
+    lib.makeLibraryPath [
+      stdenv.cc.cc.lib
+      glfw3
+    ]
+  }";
 
   postBuild = ''
     make "-j$NIX_BUILD_CORES" -C $sourceRoot/gui "M=$sourceRoot/gui" "LIBS=-lglfw -lGL"
