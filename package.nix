@@ -44,15 +44,20 @@ stdenv.mkDerivation {
     "KBUILD_OUTPUT=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
     "-C"
     "${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
-    "M=$(sourceRoot)/driver"
   ];
 
   preBuild = ''
     # Upstream removed config.sample.h; create config.h from defaults.h
-    # The Makefile expects config.h to exist (cp -n config.sample.h config.h)
     if [ ! -f $sourceRoot/driver/config.h ]; then
-      cp $sourceRoot/driver/defaults.h $sourceRoot/driver/config.h
+      if [ -f $sourceRoot/driver/defaults.h ]; then
+        cp $sourceRoot/driver/defaults.h $sourceRoot/driver/config.h
+      elif [ -f $sourceRoot/driver/config.sample.h ]; then
+        cp $sourceRoot/driver/config.sample.h $sourceRoot/driver/config.h
+      fi
     fi
+
+    # Set M= here where $sourceRoot is available as a shell variable
+    makeFlagsArray+=("M=$sourceRoot/driver")
   '';
 
   LD_LIBRARY_PATH = "/run/opengl-driver/lib:${
@@ -63,7 +68,7 @@ stdenv.mkDerivation {
   }";
 
   postBuild = ''
-    make "-j$NIX_BUILD_CORES" -C $sourceRoot/gui "M=$sourceRoot/gui" "LIBS=-lglfw -lGL"
+    make -j"$NIX_BUILD_CORES" -C "$sourceRoot/gui" M="$sourceRoot/gui" LIBS="-lglfw -lGL"
   '';
 
   postPatch = ''
