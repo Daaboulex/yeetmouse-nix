@@ -1,0 +1,13 @@
+result
+result-*
+.direnv
+.envrc
+__pycache__/
+
+# AI context — local only, never committed
+AI-progress.json
+AI-tasks.json
+CLAUDE.md
+GEMINI.md
+.claude/
+.gemini/
