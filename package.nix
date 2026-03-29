@@ -11,6 +11,7 @@
   copyDesktopItems,
   autoPatchelfHook,
   makeWrapper,
+  pkg-config,
   yeetmouse-src,
 }:
 
@@ -47,6 +48,7 @@ buildStdenv.mkDerivation {
       makeWrapper
       autoPatchelfHook
       copyDesktopItems
+      pkg-config
     ]
     ++ lib.optionals kernelUsesLLVM [ llvmPackages_latest.lld ];
   buildInputs = [
