@@ -1,0 +1,15 @@
+{
+  "package": "yeetmouse",
+  "upstream": {
+    "type": "github-commit",
+    "owner": "AndyFilter",
+    "repo": "YeetMouse",
+    "branch": "master"
+  },
+  "packageFile": "version.json",
+  "hashes": [],
+  "verify": {
+    "check": "elf"
+  },
+  "schedule": "0 6 * * *"
+}
