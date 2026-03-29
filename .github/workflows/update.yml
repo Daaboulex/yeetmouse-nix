@@ -1,7 +1,7 @@
 name: Update
 on:
   schedule:
-    - cron: '{{SCHEDULE}}'
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 permissions:
