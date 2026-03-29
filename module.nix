@@ -5,38 +5,36 @@
   ...
 }:
 
-with lib;
-
 let
-  cfg = config.myModules.input.yeetmouse;
-  hwCfg = config.hardware.yeetmouse;
+  cfg = config.hardware.yeetmouse;
 
   degToRad = x: x * 0.017453292;
-  floatRange = lower: upper: types.addCheck types.float (x: x >= lower && x <= upper);
+  floatRange = lower: upper: lib.types.addCheck lib.types.float (x: x >= lower && x <= upper);
 
   parameterBasePath = "/sys/module/yeetmouse/parameters";
 
-  # --- G502 device config ---
-  g502Cfg = cfg.devices.g502;
+  yeetmouse = pkgs.yeetmouse.override {
+    inherit (config.boot.kernelPackages) kernel;
+  };
 
   # --- Rotation type ---
-  rotationType = types.submodule {
+  rotationType = lib.types.submodule {
     options = {
-      angle = mkOption {
+      angle = lib.mkOption {
         type = floatRange (-180.0) 180.0;
         default = 0.0;
         apply = degToRad;
         description = "Rotation adjustment to apply to mouse inputs (in degrees)";
       };
 
-      snappingAngle = mkOption {
+      snappingAngle = lib.mkOption {
         type = floatRange 0.0 179.9;
         default = 0.0;
         apply = degToRad;
         description = "Rotation angle to snap to";
       };
 
-      snappingThreshold = mkOption {
+      snappingThreshold = lib.mkOption {
         type = floatRange 0.0 179.9;
         default = 0.0;
         apply = degToRad;
@@ -46,30 +44,30 @@ let
   };
 
   # --- Acceleration modes ---
-  modesType = types.attrTag {
-    linear = mkOption {
+  modesType = lib.types.attrTag {
+    linear = lib.mkOption {
       description = ''
         Simplest acceleration mode. Accelerates at a constant rate by multiplying acceleration.
         See [RawAccel: Linear](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#linear)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.0005 1.0;
             default = 0.15;
             description = "Linear acceleration multiplier";
           };
-          useSmoothing = mkOption {
-            type = types.bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = false;
             description = "Enables the ability to use smooth capping in the Linear curve";
             apply = x: if x then "1" else "0";
           };
-          smoothCap = mkOption {
+          smoothCap = lib.mkOption {
             type = floatRange 0.1 10.0;
             default = 6.0;
             apply = toString;
-            description = "Only used when useSmoothing is enabled, it a applies a smooth cap to the set value";
+            description = "Only used when useSmoothing is enabled, applies a smooth cap to the set value";
           };
         };
       };
@@ -93,39 +91,39 @@ let
       ];
     };
 
-    power = mkOption {
+    power = lib.mkOption {
       description = ''
         Acceleration mode based on an exponent and multiplier as found in Source Engine games.
         See [RawAccel: Power](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#power)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.0005 5.0;
             default = 0.15;
             description = "Power acceleration pre-multiplier";
           };
-          exponent = mkOption {
+          exponent = lib.mkOption {
             type = floatRange 0.0005 1.0;
             default = 0.2;
             description = "Power acceleration exponent";
           };
-          outputOffset = mkOption {
+          outputOffset = lib.mkOption {
             type = floatRange 0.0 5.0;
             default = 1.0;
             description = "Speed output offset";
           };
-          useSmoothing = mkOption {
-            type = bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = false;
             description = "Enables the ability to use smooth capping in the Power curve";
             apply = x: if x then "1" else "0";
           };
-          smoothCap = mkOption {
+          smoothCap = lib.mkOption {
             type = floatRange 0.1 10.0;
             default = 6;
             apply = toString;
-            description = "Only used when useSmoothing is enabled, it a applies a smooth cap to the set value";
+            description = "Only used when useSmoothing is enabled, applies a smooth cap to the set value";
           };
         };
       };
@@ -157,36 +155,36 @@ let
       ];
     };
 
-    classic = mkOption {
+    classic = lib.mkOption {
       description = ''
         Acceleration mode based on an exponent and multiplier as found in Quake 3.
         See [RawAccel: Classic](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#classic)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.0005 5.0;
             default = 0.15;
             apply = toString;
             description = "Classic acceleration pre-multiplier";
           };
-          exponent = mkOption {
+          exponent = lib.mkOption {
             type = floatRange 2.0 5.0;
             default = 2.0;
             apply = toString;
             description = "Classic acceleration exponent";
           };
-          useSmoothing = mkOption {
-            type = types.bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = false;
             description = "Enables the ability to use smooth capping in the Classic curve";
             apply = x: if x then "1" else "0";
           };
-          smoothCap = mkOption {
+          smoothCap = lib.mkOption {
             type = floatRange 0.1 10.0;
             default = 6.0;
             apply = toString;
-            description = "Only used when useSmoothing is enabled, it a applies a smooth cap to the set value";
+            description = "Only used when useSmoothing is enabled, applies a smooth cap to the set value";
           };
         };
       };
@@ -214,20 +212,20 @@ let
       ];
     };
 
-    motivity = mkOption {
+    motivity = lib.mkOption {
       description = ''
         Acceleration mode based on a sigmoid function with a set mid-point.
         See [RawAccel: Motivity](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#motivity)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.01 10.0;
             default = 0.15;
             apply = toString;
             description = "Motivity acceleration dividend";
           };
-          start = mkOption {
+          start = lib.mkOption {
             type = floatRange 0.1 50.0;
             default = 10.0;
             apply = toString;
@@ -251,39 +249,39 @@ let
       ];
     };
 
-    synchronous = mkOption {
+    synchronous = lib.mkOption {
       description = ''
         This acceleration type is designed to match how we naturally perceive changes in speed, using a logarithmic sensitivity curve centered around a "synchronous speed." If the synchronous speed is set correctly, the sensitivity change will align with our intuitive estimation of speed differences.
         See [RawAccel: Synchronous](https://github.com/RawAccelOfficial/rawaccel/blob/master/doc/Guide.md#synchronous)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          gamma = mkOption {
+          gamma = lib.mkOption {
             type = floatRange 0.01 20.0;
             default = 0.3;
             apply = toString;
             description = "Expresses how fast the change occurs";
           };
-          smoothness = mkOption {
+          smoothness = lib.mkOption {
             type = floatRange 0.1 20.0;
             default = 1.0;
             apply = toString;
             description = "Affects how fast the changes tails in and out";
           };
-          motivity = mkOption {
+          motivity = lib.mkOption {
             type = floatRange 1 10.0;
             default = 2.0;
             apply = toString;
             description = "Expresses how much change will occur";
           };
-          syncspeed = mkOption {
+          syncspeed = lib.mkOption {
             type = floatRange 0.01 20.0;
             default = 2.0;
             apply = toString;
             description = "Works a bit like offset";
           };
-          useSmoothing = mkOption {
-            type = types.bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = true;
             description = "Enable gain";
             apply = x: if x then "1" else "0";
@@ -318,30 +316,30 @@ let
       ];
     };
 
-    natural = mkOption {
+    natural = lib.mkOption {
       description = ''
         Acceleration mode Natural features a concave curve which starts at 1 and approaches some maximum sensitivity. The sensitivity version of this curve can be found in the game Diabotical.
         See [RawAccel: Natural](https://github.com/RawAccelOfficial/rawaccel/blob/d179e22/doc/Guide.md#natural)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.001 5.0;
             default = 0.15;
             description = "Natural decay rate";
           };
-          midpoint = mkOption {
+          midpoint = lib.mkOption {
             type = floatRange 0 50.0;
             default = 0;
             description = "Natural acceleration mid-point";
           };
-          exponent = mkOption {
+          exponent = lib.mkOption {
             type = floatRange 0.001 8.0;
             default = 2;
             description = "Natural acceleration limit (smoothness of the applied output curve)";
           };
-          useSmoothing = mkOption {
-            type = types.bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = false;
             description = "Enable Natural curve smoothing (Makes the curve smoother)";
             apply = x: if x then "1" else "0";
@@ -372,31 +370,31 @@ let
       ];
     };
 
-    jump = mkOption {
+    jump = lib.mkOption {
       description = ''
         Acceleration mode applying gain above a mid-point.
         Optionally, the transition mid-point can be smoothened and a smoothness may be applied to the whole sigmoid function.
         See [RawAccel: Jump](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#jump)
       '';
-      type = types.submodule {
+      type = lib.types.submodule {
         options = {
-          acceleration = mkOption {
+          acceleration = lib.mkOption {
             type = floatRange 0.01 10.0;
             default = 0.15;
             description = "Jump acceleration dividend";
           };
-          midpoint = mkOption {
+          midpoint = lib.mkOption {
             type = floatRange 0.1 50.0;
             default = 0.15;
             description = "Jump acceleration mid-point";
           };
-          exponent = mkOption {
+          exponent = lib.mkOption {
             type = floatRange 0.0 1.0;
             default = 0.2;
             description = "Jump curve smoothness (smoothness of the applied output curve)";
           };
-          useSmoothing = mkOption {
-            type = types.bool;
+          useSmoothing = lib.mkOption {
+            type = lib.types.bool;
             default = true;
             description = "Enable Jump smoothing (whether the transition mid-point is smoothed out into the gain curve";
             apply = x: if x then "1" else "0";
@@ -431,28 +429,28 @@ let
       let
         tuple =
           ts:
-          mkOptionType {
+          lib.mkOptionType {
             name = "tuple";
-            merge = mergeOneOption;
-            check = xs: all id (zipListsWith (t: x: t.check x) ts xs);
-            description = "tuple of" + concatMapStrings (t: " (${t.description})") ts;
+            merge = lib.mergeOneOption;
+            check = xs: lib.all lib.id (lib.zipListsWith (t: x: t.check x) ts xs);
+            description = "tuple of" + lib.concatMapStrings (t: " (${t.description})") ts;
           };
         lutVec = tuple [
           ((floatRange 0.0 100.0) // { description = "Input speed (x)"; })
           ((floatRange 0.0 100.0) // { description = "Output speed ratio (y)"; })
         ];
       in
-      mkOption {
+      lib.mkOption {
         description = ''
           Acceleration mode following a custom curve.
           The curve is specified using individual `[x, y]` points.
           See [RawAccel: Lookup Table](https://github.com/RawAccelOfficial/rawaccel/blob/5b39bb6/doc/Guide.md#look-up-table)
           The acceleration mode for custom curves is represented as a LUT as well. Use the Yeetmouse GUI to convert bezier curves to a LUT.
         '';
-        type = types.submodule {
+        type = lib.types.submodule {
           options = {
-            data = mkOption {
-              type = types.listOf lutVec;
+            data = lib.mkOption {
+              type = lib.types.listOf lutVec;
               default = [ ];
               apply = ls: map (t: "${toString t [ 0 ]},${toString t [ 1 ]}") ls;
               description = "Lookup Table data (a list of `[x, y]` points)";
@@ -465,59 +463,23 @@ let
             param = "AccelerationMode";
           }
           {
-            value = concatStringsSep ";" params.data;
+            value = lib.concatStringsSep ";" params.data;
             param = "LutDataBuf";
           }
           {
-            value = length params.data;
+            value = lib.length params.data;
             param = "LutSize";
           }
         ];
       };
   };
-
-  yeetmouse = pkgs.yeetmouse.override {
-    inherit (config.boot.kernelPackages) kernel;
-  };
 in
 {
   _class = "nixos";
 
-  options.myModules.input.yeetmouse = {
-    enable = mkEnableOption "YeetMouse input driver";
-
-    devices.g502 = {
-      enable = mkEnableOption "Libinput flat acceleration profile for Logitech G502 (Wired/Wireless)";
-
-      wiredProductId = mkOption {
-        type = types.str;
-        default = "c08d";
-        description = "USB product ID for the wired G502 (check with lsusb)";
-      };
-
-      wirelessProductId = mkOption {
-        type = types.str;
-        default = "c539";
-        description = "USB product ID for the Lightspeed Receiver";
-      };
-
-      dpi = mkOption {
-        type = types.int;
-        default = 1600;
-        description = "Mouse DPI setting (reported to libinput via HWDB)";
-      };
-
-      pollingRate = mkOption {
-        type = types.int;
-        default = 1000;
-        description = "Mouse polling rate in Hz (reported to libinput via HWDB)";
-      };
-    };
-  };
-
   options.hardware.yeetmouse = {
-    enable = mkOption {
-      type = types.bool;
+    enable = lib.mkOption {
+      type = lib.types.bool;
       default = false;
       description = "Enable yeetmouse kernel module to add configurable mouse acceleration";
     };
@@ -525,38 +487,38 @@ in
     sensitivity =
       let
         sensitivityValue = floatRange 0.01 10.0;
-        anisotropyValue = types.submodule {
+        anisotropyValue = lib.types.submodule {
           description = "Anisotropic sensitivity, separating X and Y movement";
           options = {
-            x = mkOption {
+            x = lib.mkOption {
               type = sensitivityValue;
               description = "Horizontal sensitivity";
             };
-            y = mkOption {
+            y = lib.mkOption {
               type = sensitivityValue;
               description = "Vertical sensitivity";
             };
           };
         };
       in
-      mkOption {
-        type = types.either sensitivityValue anisotropyValue;
+      lib.mkOption {
+        type = lib.types.either sensitivityValue anisotropyValue;
         default = 1.0;
         description = "Mouse base sensitivity";
         apply = sens: [
           {
-            value = if isAttrs sens then toString sens.x else toString sens;
+            value = if lib.isAttrs sens then toString sens.x else toString sens;
             param = "Sensitivity";
           }
           {
-            value = toString (if isAttrs sens then sens.y / sens.x else 1.0);
+            value = toString (if lib.isAttrs sens then sens.y / sens.x else 1.0);
             param = "RatioYX";
           }
         ];
       };
 
-    inputCap = mkOption {
-      type = types.nullOr (floatRange 0.0 200.0);
+    inputCap = lib.mkOption {
+      type = lib.types.nullOr (floatRange 0.0 200.0);
       default = null;
       description = "Limit the maximum pointer speed before applying acceleration";
       apply = x: {
@@ -565,8 +527,8 @@ in
       };
     };
 
-    outputCap = mkOption {
-      type = types.nullOr (floatRange 0.0 100.0);
+    outputCap = lib.mkOption {
+      type = lib.types.nullOr (floatRange 0.0 100.0);
       default = null;
       description = "Cap maximum sensitivity.";
       apply = x: {
@@ -575,8 +537,8 @@ in
       };
     };
 
-    offset = mkOption {
-      type = types.nullOr (floatRange (-50.0) 50.0);
+    offset = lib.mkOption {
+      type = lib.types.nullOr (floatRange (-50.0) 50.0);
       default = 0.0;
       description = "Acceleration curve offset";
       apply = x: {
@@ -585,7 +547,7 @@ in
       };
     };
 
-    preScale = mkOption {
+    preScale = lib.mkOption {
       type = floatRange 0.01 10.0;
       default = 1.0;
       description = "Parameter to adjust for DPI";
@@ -595,7 +557,7 @@ in
       };
     };
 
-    rotation = mkOption {
+    rotation = lib.mkOption {
       type = rotationType;
       default = { };
       description = "Adjust mouse rotation input and optionally apply a snapping angle";
@@ -615,7 +577,7 @@ in
       ];
     };
 
-    mode = mkOption {
+    mode = lib.mkOption {
       type = modesType;
       default = {
         linear = { };
@@ -623,121 +585,81 @@ in
       description = "Acceleration mode to apply and their parameters";
       apply =
         params:
-        (optionals (params ? linear) params.linear)
-        ++ (optionals (params ? power) params.power)
-        ++ (optionals (params ? classic) params.classic)
-        ++ (optionals (params ? motivity) params.motivity)
-        ++ (optionals (params ? synchronous) params.synchronous)
-        ++ (optionals (params ? natural) params.natural)
-        ++ (optionals (params ? jump) params.jump)
-        ++ (optionals (params ? lut) params.lut);
+        (lib.optionals (params ? linear) params.linear)
+        ++ (lib.optionals (params ? power) params.power)
+        ++ (lib.optionals (params ? classic) params.classic)
+        ++ (lib.optionals (params ? motivity) params.motivity)
+        ++ (lib.optionals (params ? synchronous) params.synchronous)
+        ++ (lib.optionals (params ? natural) params.natural)
+        ++ (lib.optionals (params ? jump) params.jump)
+        ++ (lib.optionals (params ? lut) params.lut);
     };
   };
 
-  config = mkMerge [
-    # Main driver config (when yeetmouse or g502 is enabled)
-    (mkIf (cfg.enable || g502Cfg.enable) {
-      hardware.yeetmouse.enable = true;
+  config = lib.mkIf cfg.enable {
+    boot.extraModulePackages = [ yeetmouse ];
 
-      services.udev.extraRules = ''
-        SUBSYSTEM=="module", KERNEL=="yeetmouse", ACTION=="add", RUN+="${pkgs.runtimeShell} -c 'chmod 0664 /sys/module/yeetmouse/parameters/* && chgrp users /sys/module/yeetmouse/parameters/*'"
-      '';
-
-      # Fallback: apply yeetmouse config after boot via systemd.
-      # The HID udev rule in hardware.yeetmouse can race with module init (sysfs params
-      # don't exist yet when the rule fires), leaving settings at kernel defaults.
-      # This service guarantees settings are applied once the module is loaded.
-      systemd.services.yeetmouse-config =
-        let
-          echo = "${pkgs.coreutils}/bin/echo";
-          globalParams = [
-            hwCfg.inputCap
-            hwCfg.outputCap
-            hwCfg.offset
-            hwCfg.preScale
-          ];
-          params = globalParams ++ hwCfg.sensitivity ++ hwCfg.rotation ++ hwCfg.mode;
-          paramToString = entry: ''
-            ${echo} "${toString entry.value}" > "${parameterBasePath}/${entry.param}"
-          '';
-        in
-        {
-          description = "Apply YeetMouse acceleration parameters";
-          after = [ "systemd-modules-load.service" ];
-          wantedBy = [ "multi-user.target" ];
-          serviceConfig = {
-            Type = "oneshot";
-            RemainAfterExit = true;
-          };
-          script = ''
-            # Wait for sysfs to be ready
-            for i in $(seq 1 20); do
-              [ -f ${parameterBasePath}/update ] && break
-              ${pkgs.coreutils}/bin/sleep 0.25
-            done
-            ${concatMapStrings (s: (paramToString s) + "\n") params}
-            ${echo} "1" > ${parameterBasePath}/update
-          '';
-        };
-    })
-
-    # hardware.yeetmouse driver (kernel module + udev HID rule)
-    (mkIf hwCfg.enable {
-      boot.extraModulePackages = [ yeetmouse ];
-
-      services.udev = {
-        extraRules =
+    services.udev.extraRules =
+      let
+        echo = "${pkgs.coreutils}/bin/echo";
+        yeetmouseConfig =
           let
-            echo = "${pkgs.coreutils}/bin/echo";
-            yeetmouseConfig =
-              let
-                globalParams = [
-                  hwCfg.inputCap
-                  hwCfg.outputCap
-                  hwCfg.offset
-                  hwCfg.preScale
-                ];
-                params = globalParams ++ hwCfg.sensitivity ++ hwCfg.rotation ++ hwCfg.mode;
-                paramToString = entry: ''
-                  ${echo} "${entry.value}" > "${parameterBasePath}/${entry.param}"
-                '';
-              in
-              pkgs.writeShellScriptBin "yeetmouseConfig" ''
-                ${concatMapStrings (s: (paramToString s) + "\n") params}
-                ${echo} "1" > /sys/module/yeetmouse/parameters/update
-              '';
+            globalParams = [
+              cfg.inputCap
+              cfg.outputCap
+              cfg.offset
+              cfg.preScale
+            ];
+            params = globalParams ++ cfg.sensitivity ++ cfg.rotation ++ cfg.mode;
+            paramToString = entry: ''
+              ${echo} "${entry.value}" > "${parameterBasePath}/${entry.param}"
+            '';
           in
-          ''
-            SUBSYSTEMS=="usb|input|hid", ATTRS{bInterfaceClass}=="03", ATTRS{bInterfaceSubClass}=="01", ATTRS{bInterfaceProtocol}=="02", ATTRS{bInterfaceNumber}=="00", RUN+="${yeetmouseConfig}/bin/yeetmouseConfig"
+          pkgs.writeShellScriptBin "yeetmouseConfig" ''
+            ${lib.concatMapStrings (s: (paramToString s) + "\n") params}
+            ${echo} "1" > /sys/module/yeetmouse/parameters/update
           '';
-      };
-    })
-
-    # G502 device config
-    (mkIf g502Cfg.enable {
-      services.udev.extraHwdb = ''
-        # Logitech G502 Lightspeed Receiver
-        evdev:input:b0003v046Dp${toUpper g502Cfg.wirelessProductId}*
-         MOUSE_DPI=${toString g502Cfg.dpi}@${toString g502Cfg.pollingRate}
-         ID_INPUT_MOUSE_ACCEL_PROFILE=flat
-
-        # Logitech G502 Wired
-        evdev:input:b0003v046Dp${toUpper g502Cfg.wiredProductId}*
-         MOUSE_DPI=${toString g502Cfg.dpi}@${toString g502Cfg.pollingRate}
-         ID_INPUT_MOUSE_ACCEL_PROFILE=flat
-
-        # Kernel-exposed input device ID (0x407F)
-        evdev:input:b0003v046Dp407F*
-         MOUSE_DPI=${toString g502Cfg.dpi}@${toString g502Cfg.pollingRate}
-         ID_INPUT_MOUSE_ACCEL_PROFILE=flat
-
-        # Generic fallback by name for any G502 variant
-        evdev:name:Logitech G502*
-         MOUSE_DPI=${toString g502Cfg.dpi}@${toString g502Cfg.pollingRate}
-         ID_INPUT_MOUSE_ACCEL_PROFILE=flat
+      in
+      ''
+        SUBSYSTEM=="module", KERNEL=="yeetmouse", ACTION=="add", RUN+="${pkgs.runtimeShell} -c 'chmod 0664 /sys/module/yeetmouse/parameters/* && chgrp users /sys/module/yeetmouse/parameters/*'"
+        SUBSYSTEMS=="usb|input|hid", ATTRS{bInterfaceClass}=="03", ATTRS{bInterfaceSubClass}=="01", ATTRS{bInterfaceProtocol}=="02", ATTRS{bInterfaceNumber}=="00", RUN+="${yeetmouseConfig}/bin/yeetmouseConfig"
       '';
 
-      boot.kernelModules = [ "yeetmouse" ];
-    })
-  ];
+    # Fallback: apply yeetmouse config after boot via systemd.
+    # The HID udev rule can race with module init (sysfs params
+    # don't exist yet when the rule fires), leaving settings at kernel defaults.
+    # This service guarantees settings are applied once the module is loaded.
+    systemd.services.yeetmouse-config =
+      let
+        echo = "${pkgs.coreutils}/bin/echo";
+        globalParams = [
+          cfg.inputCap
+          cfg.outputCap
+          cfg.offset
+          cfg.preScale
+        ];
+        params = globalParams ++ cfg.sensitivity ++ cfg.rotation ++ cfg.mode;
+        paramToString = entry: ''
+          ${echo} "${toString entry.value}" > "${parameterBasePath}/${entry.param}"
+        '';
+      in
+      {
+        description = "Apply YeetMouse acceleration parameters";
+        after = [ "systemd-modules-load.service" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+        script = ''
+          # Wait for sysfs to be ready
+          for i in $(seq 1 20); do
+            [ -f ${parameterBasePath}/update ] && break
+            ${pkgs.coreutils}/bin/sleep 0.25
+          done
+          ${lib.concatMapStrings (s: (paramToString s) + "\n") params}
+          ${echo} "1" > ${parameterBasePath}/update
+        '';
+      };
+  };
 }

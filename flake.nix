@@ -41,8 +41,8 @@
 
       overlays.default = final: _prev: {
         yeetmouse = final.callPackage ./package.nix {
-          inherit (final.linuxPackages) kernel;
           inherit yeetmouse-src;
+          inherit (final.linuxPackages) kernel;
         };
       };
 

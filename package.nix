@@ -1,6 +1,7 @@
 {
   lib,
   stdenv,
+  llvmPackages_latest,
   coreutils,
   writeShellScript,
   makeDesktopItem,
@@ -11,15 +12,25 @@
   autoPatchelfHook,
   makeWrapper,
   yeetmouse-src,
-  # Allow overriding these for CachyOS/LLVM kernels
-  kernelModuleMakeFlags ? null,
 }:
 
 let
-  actualKernelModuleMakeFlags =
-    if kernelModuleMakeFlags != null then kernelModuleMakeFlags else kernel.makeFlags;
+  # Auto-detect if kernel uses LLVM/Clang (CachyOS LTO, etc.)
+  kernelNameLower = lib.toLower (kernel.pname or kernel.name or "");
+  kernelUsesLLVM =
+    (builtins.match ".*cachyos.*" kernelNameLower != null)
+    || lib.any (f: lib.hasPrefix "LLVM=1" f || lib.hasPrefix "CC=clang" f) (kernel.makeFlags or [ ]);
+
+  buildStdenv = if kernelUsesLLVM then llvmPackages_latest.stdenv else stdenv;
+
+  llvmMakeFlags = lib.optionals kernelUsesLLVM [
+    "LLVM=1"
+    "CC=clang"
+    "LD=ld.lld"
+    "KCFLAGS=-Wno-unused-command-line-argument"
+  ];
 in
-stdenv.mkDerivation {
+buildStdenv.mkDerivation {
   pname = "yeetmouse";
   version =
     let
@@ -30,17 +41,20 @@ stdenv.mkDerivation {
   src = yeetmouse-src;
 
   setSourceRoot = "export sourceRoot=$(pwd)/source";
-  nativeBuildInputs = kernel.moduleBuildDependencies ++ [
-    makeWrapper
-    autoPatchelfHook
-    copyDesktopItems
-  ];
+  nativeBuildInputs =
+    kernel.moduleBuildDependencies
+    ++ [
+      makeWrapper
+      autoPatchelfHook
+      copyDesktopItems
+    ]
+    ++ lib.optionals kernelUsesLLVM [ llvmPackages_latest.lld ];
   buildInputs = [
-    stdenv.cc.cc.lib
+    buildStdenv.cc.cc.lib
     glfw3
   ];
 
-  makeFlags = actualKernelModuleMakeFlags ++ [
+  makeFlags = llvmMakeFlags ++ [
     "KBUILD_OUTPUT=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
     "-C"
     "${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
@@ -62,14 +76,18 @@ stdenv.mkDerivation {
 
   LD_LIBRARY_PATH = "/run/opengl-driver/lib:${
     lib.makeLibraryPath [
-      stdenv.cc.cc.lib
+      buildStdenv.cc.cc.lib
       glfw3
     ]
   }";
 
-  postBuild = ''
-    make -j"$NIX_BUILD_CORES" -C "$sourceRoot/gui" M="$sourceRoot/gui" LIBS="-lglfw -lGL"
-  '';
+  postBuild =
+    let
+      cxx = if kernelUsesLLVM then "CXX=clang++" else "";
+    in
+    ''
+      make -j"$NIX_BUILD_CORES" ${cxx} -C "$sourceRoot/gui" M="$sourceRoot/gui" LIBS="-lglfw -lGL"
+    '';
 
   postPatch = ''
     # Convert informational printk to KERN_INFO
