@@ -107,6 +107,12 @@ buildStdenv.mkDerivation {
     sed -i 's/if (getuid()) {/if (false) { \/\/ getuid check disabled/g' gui/main.cpp
     sed -i 's/has_privilege = false;/has_privilege = true; \/\/ forced/g' gui/main.cpp
     sed -i 's/ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/if(false) ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/g' gui/main.cpp
+
+    # Exclude BUS_VIRTUAL devices from driver_match — prevents yeetmouse from
+    # attaching to uinput virtual devices (StreamController, etc.) whose broad
+    # key capabilities cause logind to interpret transformed events as system
+    # power keys, crashing the session. keyd uses BUS_USB so it still works.
+    sed -i 's/dev->id.bustype == BUS_USB || dev->id.bustype == BUS_VIRTUAL/dev->id.bustype == BUS_USB/' driver/driver.c
   '';
 
   postInstall = ''
