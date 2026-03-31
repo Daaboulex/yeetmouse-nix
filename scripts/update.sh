@@ -39,7 +39,14 @@ output "updated" "true"
 output "new_version" "${LATEST_REV:0:7}"
 
 DATE=$(date +%Y-%m-%d)
-jq --arg r "$LATEST_REV" --arg v "${LATEST_REV:0:7}" --arg d "$DATE" \
+# Append -patched suffix when package.nix has local postPatch modifications
+# (e.g., BUS_VIRTUAL removal). This ensures the Nix derivation hash changes
+# after upstream updates, preventing stale cached builds.
+VERSION_SUFFIX=""
+if grep -q 'BUS_VIRTUAL' package.nix 2>/dev/null; then
+  VERSION_SUFFIX="-patched"
+fi
+jq --arg r "$LATEST_REV" --arg v "${LATEST_REV:0:7}${VERSION_SUFFIX}" --arg d "$DATE" \
   '.rev = $r | .version = $v | .date = $d' \
   version.json > version.json.tmp && mv version.json.tmp version.json
 
