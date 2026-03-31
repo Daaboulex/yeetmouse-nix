@@ -13,7 +13,7 @@ let
 
   parameterBasePath = "/sys/module/yeetmouse/parameters";
 
-  yeetmouse = pkgs.yeetmouse.override {
+  yeetmouse = cfg.package.override {
     inherit (config.boot.kernelPackages) kernel;
   };
 
@@ -482,6 +482,13 @@ in
       type = lib.types.bool;
       default = false;
       description = "Enable yeetmouse kernel module to add configurable mouse acceleration";
+    };
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.yeetmouse;
+      defaultText = lib.literalExpression "pkgs.yeetmouse";
+      description = "The yeetmouse package to use. Override to bypass overlay caching.";
     };
 
     sensitivity =
