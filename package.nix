@@ -108,11 +108,17 @@ buildStdenv.mkDerivation {
     sed -i 's/has_privilege = false;/has_privilege = true; \/\/ forced/g' gui/main.cpp
     sed -i 's/ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/if(false) ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/g' gui/main.cpp
 
-    # Exclude BUS_VIRTUAL devices from driver_match — prevents yeetmouse from
-    # attaching to uinput virtual devices (StreamController, etc.) whose broad
-    # key capabilities cause logind to interpret transformed events as system
-    # power keys, crashing the session. keyd uses BUS_USB so it still works.
-    sed -i 's/dev->id.bustype == BUS_USB || dev->id.bustype == BUS_VIRTUAL/dev->id.bustype == BUS_USB/' driver/driver.c
+    # Exclude uinput virtual devices from driver_match — prevents yeetmouse from
+    # attaching to StreamController/etc. virtual input devices that report BUS_USB
+    # but are actually uinput devices with generic vendor/product IDs.
+    # These devices have broad key capabilities that logind monitors for system
+    # power keys, causing session crashes when yeetmouse transforms events on them.
+    # Real USB mice have real vendor IDs (e.g., 046D for Logitech).
+    # keyd uses BUS_USB with vendor=0x0001 but it has a parent HID device, so it
+    # matches the HID path above (lines 158-162) and is unaffected by this filter.
+    sed -i '/handle other non-HID devices/,/return false;/{
+      /if (dev->id.bustype == BUS_USB/c\    if ((dev->id.bustype == BUS_USB || dev->id.bustype == BUS_VIRTUAL) \&\& dev->id.vendor != 0x0001) {
+    }' driver/driver.c
   '';
 
   postInstall = ''
