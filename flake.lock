@@ -85,11 +85,11 @@
     "yeetmouse-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1774982980,
-        "narHash": "sha256-X5r9Qxvln3NGuv61iNfejDHcKfqsDnsxPCy0Sop5I98=",
+        "lastModified": 1775856781,
+        "narHash": "sha256-jy+8A4KMI7g4FcXafKECTNo9/klzmUmOGXJtKy2aMWI=",
         "owner": "AndyFilter",
         "repo": "YeetMouse",
-        "rev": "b338077a88785021d4783140eddcecc73a4929c5",
+        "rev": "a5b0a357cce10ad45183fefbdca97480487b92a6",
         "type": "github"
       },
       "original": {
