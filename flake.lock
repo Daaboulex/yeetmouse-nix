@@ -25,11 +25,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1775036584,
-        "narHash": "sha256-zW0lyy7ZNNT/x8JhzFHBsP2IPx7ATZIPai4FJj12BgU=",
+        "lastModified": 1775585728,
+        "narHash": "sha256-8Psjt+TWvE4thRKktJsXfR6PA/fWWsZ04DVaY6PUhr4=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "4e0eb042b67d863b1b34b3f64d52ceb9cd926735",
+        "rev": "580633fa3fe5fc0379905986543fd7495481913d",
         "type": "github"
       },
       "original": {
@@ -61,11 +61,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1775036866,
-        "narHash": "sha256-ZojAnPuCdy657PbTq5V0Y+AHKhZAIwSIT2cb8UgAz/U=",
+        "lastModified": 1775710090,
+        "narHash": "sha256-ar3rofg+awPB8QXDaFJhJ2jJhu+KqN/PRCXeyuXR76E=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "6201e203d09599479a3b3450ed24fa81537ebc4e",
+        "rev": "4c1018dae018162ec878d42fec712642d214fdfa",
         "type": "github"
       },
       "original": {
@@ -85,11 +85,11 @@
     "yeetmouse-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1775856781,
-        "narHash": "sha256-jy+8A4KMI7g4FcXafKECTNo9/klzmUmOGXJtKy2aMWI=",
+        "lastModified": 1775895278,
+        "narHash": "sha256-dxsjlJq8/m0iN9chitPyKxvYxr72fJQBJsMdt2VqOnI=",
         "owner": "AndyFilter",
         "repo": "YeetMouse",
-        "rev": "a5b0a357cce10ad45183fefbdca97480487b92a6",
+        "rev": "d1d0ce82a37d8d1dee768b0376dcfa4bfd6ca793",
         "type": "github"
       },
       "original": {
