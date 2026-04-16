@@ -1,8 +1,13 @@
 # yeetmouse-nix
 
-YeetMouse kernel mouse acceleration driver packaged for NixOS.
-
 [![CI](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml/badge.svg)](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/Daaboulex/yeetmouse-nix)](./LICENSE)
+[![NixOS](https://img.shields.io/badge/NixOS-unstable-78C0E8?logo=nixos&logoColor=white)](https://nixos.org)
+[![Last commit](https://img.shields.io/github/last-commit/Daaboulex/yeetmouse-nix)](https://github.com/Daaboulex/yeetmouse-nix/commits)
+[![Stars](https://img.shields.io/github/stars/Daaboulex/yeetmouse-nix?style=flat)](https://github.com/Daaboulex/yeetmouse-nix/stargazers)
+[![Issues](https://img.shields.io/github/issues/Daaboulex/yeetmouse-nix)](https://github.com/Daaboulex/yeetmouse-nix/issues)
+
+YeetMouse kernel mouse acceleration driver packaged for NixOS.
 
 ## Features
 
