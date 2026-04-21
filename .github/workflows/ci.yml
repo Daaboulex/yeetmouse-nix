@@ -12,7 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
-      - uses: DeterminateSystems/nix-installer-action@d96bc962e61b3049ce8128d03d57a1144fa96539
+      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25  # v22 (node24)
+      # NOTE: magic-nix-cache-action removed 2026-04-16 — DeterminateSystems
+      # tied it to FlakeHub auth, which broke CI for individual maintainers
+      # without a FlakeHub account. Builds without binary cache are slower
+      # but reliable. To re-enable caching: register at flakehub.com OR
+      # switch to cachix-action with a personal cache.
 
       - name: Eval check
         run: nix flake check --no-build
@@ -22,16 +27,15 @@ jobs:
 
       - name: Build
         run: |
-          # Kernel module packages cannot build on CI — they require the target
-          # kernel headers (CachyOS LTO) which aren't available in GitHub Actions.
-          # Eval check above verifies the derivation evaluates correctly.
-          echo "Kernel module repo — skipping build (requires target kernel headers)"
+          # Skip build for module-only repos (no packages output)
+          if nix eval .#packages.x86_64-linux.default --apply 'x: true' 2>/dev/null; then
+            nix build --print-build-logs
+          else
+            echo "No default package — skipping build (module-only repo)"
+          fi
 
       - name: Verify
         run: |
-          # Kernel modules are verified by eval only — no binary to check on CI
-          echo "Kernel module repo — eval-only verification"
-          exit 0
           if [ ! -f .github/update.json ]; then exit 0; fi
           if [ ! -L result ] && [ ! -d result ]; then exit 0; fi  # no build output
           BINARY=$(jq -r '.verify.binary // empty' .github/update.json)
