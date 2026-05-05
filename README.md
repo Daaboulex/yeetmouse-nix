@@ -1,23 +1,21 @@
 # yeetmouse-nix
 
-[![CI](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml/badge.svg)](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml)
-[![License](https://img.shields.io/github/license/Daaboulex/yeetmouse-nix)](./LICENSE)
-[![NixOS](https://img.shields.io/badge/NixOS-unstable-78C0E8?logo=nixos&logoColor=white)](https://nixos.org)
-[![Last commit](https://img.shields.io/github/last-commit/Daaboulex/yeetmouse-nix)](https://github.com/Daaboulex/yeetmouse-nix/commits)
-[![Stars](https://img.shields.io/github/stars/Daaboulex/yeetmouse-nix?style=flat)](https://github.com/Daaboulex/yeetmouse-nix/stargazers)
-[![Issues](https://img.shields.io/github/issues/Daaboulex/yeetmouse-nix)](https://github.com/Daaboulex/yeetmouse-nix/issues)
+<!-- BEGIN generated:badges -->
+[![NixOS unstable](https://img.shields.io/badge/NixOS-unstable-78C0E8?logo=nixos&logoColor=white)](https://nixos.org)
+[![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-blue.svg)](./LICENSE)
+<!-- END generated:badges -->
 
 YeetMouse kernel mouse acceleration driver packaged for NixOS.
 
+<!-- BEGIN generated:upstream -->
 ## Upstream
 
-This is a **Nix packaging wrapper** — not the original project. All credit for YeetMouse goes to:
-
-- **Author**: [AndyFilter](https://github.com/AndyFilter)
-- **Repository**: [github.com/AndyFilter/YeetMouse](https://github.com/AndyFilter/YeetMouse)
-- **License**: [GPL-2.0](https://github.com/AndyFilter/YeetMouse/blob/master/LICENSE) (kernel module)
-
-Tracks `master` via `github-commit`. Daily upstream check at 06:00 UTC.
+| | |
+|---|---|
+| **Project** | [AndyFilter/YeetMouse](https://github.com/AndyFilter/YeetMouse) |
+| **License** | GPL-2.0 |
+| **Tracked** | Git commits (master) |
+<!-- END generated:upstream -->
 
 ## What Is This?
 
@@ -46,6 +44,30 @@ A Nix flake that builds the YeetMouse kernel module + GUI from upstream master w
 - Dual compiler detection (GCC and LLVM/Clang for CachyOS LTO kernels)
 - G502 libinput HWDB integration (flat profile to prevent double acceleration)
 - Udev + systemd service for immediate parameter application on mouse connect
+
+<!-- BEGIN generated:installation -->
+## Installation
+
+Add as a flake input:
+
+```nix
+{
+  inputs.yeetmouse = {
+    url = "github:Daaboulex/yeetmouse-nix";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+}
+```
+
+Then use the package:
+
+```nix
+{ pkgs, inputs, ... }:
+{
+  environment.systemPackages = [ inputs.yeetmouse.packages.${pkgs.system}.default ];
+}
+```
+<!-- END generated:installation -->
 
 ## Usage
 
@@ -105,3 +127,9 @@ CI runs the same chain daily via `.github/workflows/update.yml`; manual updates 
 ## License
 
 This packaging flake is [GPL-2.0](./LICENSE) licensed (matches upstream — kernel module licenses propagate). Upstream YeetMouse is [GPL-2.0](https://github.com/AndyFilter/YeetMouse/blob/master/LICENSE).
+
+<!-- BEGIN generated:footer -->
+---
+
+*Maintained as part of the [Daaboulex](https://github.com/Daaboulex) NixOS ecosystem.*
+<!-- END generated:footer -->
