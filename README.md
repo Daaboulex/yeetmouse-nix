@@ -16,6 +16,7 @@ YeetMouse kernel mouse acceleration driver packaged for NixOS.
 | **Project** | [AndyFilter/YeetMouse](https://github.com/AndyFilter/YeetMouse) |
 | **License** | GPL-2.0 |
 | **Tracked** | Git commits (master) |
+
 <!-- END generated:upstream -->
 
 ## What Is This?
@@ -68,6 +69,7 @@ Then use the package:
   environment.systemPackages = [ inputs.yeetmouse.packages.${pkgs.system}.default ];
 }
 ```
+
 <!-- END generated:installation -->
 
 ## Usage
