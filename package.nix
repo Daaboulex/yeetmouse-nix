@@ -155,7 +155,7 @@ buildStdenv.mkDerivation {
     description = "YeetMouse — kernel mouse acceleration driver with GUI";
     homepage = "https://github.com/AndyFilter/YeetMouse";
     license = lib.licenses.gpl2Only;
-    platforms = lib.platforms.linux;
+    platforms = [ "x86_64-linux" ];
     mainProgram = "yeetmouse";
   };
 }

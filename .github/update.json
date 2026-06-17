@@ -25,5 +25,8 @@
     "mouse-acceleration",
     "rawaccel",
     "input"
-  ]
+  ],
+  "platforms": {
+    "aarch64-linux": "x86 inline asm in FixedMath/Fixed64.h (FP64 division)"
+  }
 }
