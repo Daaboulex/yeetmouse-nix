@@ -3,9 +3,15 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-parts.url = "github:hercules-ci/flake-parts";
     git-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    std = {
+      url = "github:Daaboulex/nix-packaging-standard?ref=v2.5.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.git-hooks.follows = "git-hooks";
     };
     yeetmouse-src = {
       url = "github:AndyFilter/YeetMouse";
@@ -14,71 +20,33 @@
   };
 
   outputs =
-    {
-      self,
-      nixpkgs,
-      git-hooks,
-      yeetmouse-src,
-    }:
-    let
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "x86_64-linux" ];
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-    in
-    {
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { localSystem.system = system; };
-        in
-        {
-          yeetmouse = pkgs.callPackage ./package.nix {
-            inherit (pkgs.linuxPackages) kernel;
-            inherit yeetmouse-src;
-          };
-          default = self.packages.${system}.yeetmouse;
-        }
-      );
+      imports = [ inputs.std.flakeModules.base ];
 
-      overlays.default = final: _prev: {
-        yeetmouse = final.callPackage ./package.nix {
-          inherit yeetmouse-src;
-          inherit (final.linuxPackages) kernel;
+      flake = {
+        nixosModules.default = import ./module.nix;
+        homeManagerModules.default = import ./hm-module.nix;
+
+        overlays.default = final: _prev: {
+          inherit (inputs.self.packages.${final.stdenv.hostPlatform.system}) yeetmouse;
         };
       };
 
-      nixosModules.default = import ./module.nix;
-      homeManagerModules.default = import ./hm-module.nix;
-
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
-
-      checks = forAllSystems (system: {
-        pre-commit-check = git-hooks.lib.${system}.run {
-          src = self;
-          hooks.nixfmt-rfc-style.enable = true;
-          hooks.typos.enable = true;
-          hooks.rumdl.enable = true;
-          hooks.check-readme-sections = {
-            enable = true;
-            name = "check-readme-sections";
-            entry = "bash scripts/check-readme-sections.sh";
-            files = "README\.md$";
-            language = "system";
-          };
-        };
-      });
-
-      devShells = forAllSystems (
-        system:
+      perSystem =
+        { pkgs, ... }:
         let
-          pkgs = nixpkgs.legacyPackages.${system};
+          yeetmouse = pkgs.callPackage ./package.nix {
+            inherit (pkgs.linuxPackages) kernel;
+            inherit (inputs) yeetmouse-src;
+          };
         in
         {
-          default = pkgs.mkShell {
-            inherit (self.checks.${system}.pre-commit-check) shellHook;
-            buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
-            packages = with pkgs; [ nil ];
+          packages = {
+            default = yeetmouse;
+            inherit yeetmouse;
           };
-        }
-      );
+        };
     };
 }

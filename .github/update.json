@@ -12,5 +12,18 @@
     "binary": null,
     "args": null,
     "check": "elf"
-  }
+  },
+  "description": "YeetMouse packaged for NixOS - kernel mouse acceleration driver (8 accel modes) plus config GUI, with NixOS/HM modules",
+  "topics": [
+    "nix",
+    "nixos",
+    "flake",
+    "nixos-module",
+    "home-manager",
+    "yeetmouse",
+    "kernel-module",
+    "mouse-acceleration",
+    "rawaccel",
+    "input"
+  ]
 }
