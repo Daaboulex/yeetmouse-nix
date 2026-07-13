@@ -1,7 +1,6 @@
 result
 result-*
 .direnv
-.envrc
 __pycache__/
 
 # AI context — local only, never committed
@@ -26,3 +25,18 @@ self-improvements-pending-*.jsonl
 .session-handoff-*.md
 handoffs/
 deferred-work.jsonl
+.direnv/
+.devshell/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage/
+build/
+dist/
+target/
+*.egg-info/
+.eggs/
+node_modules/
+.venv/
+venv/
