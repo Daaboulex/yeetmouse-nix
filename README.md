@@ -21,22 +21,20 @@ YeetMouse kernel mouse acceleration driver packaged for NixOS.
 
 ## What Is This?
 
-A Nix flake that builds the YeetMouse kernel module + GUI from upstream master with full CI infrastructure:
+A Nix flake that builds the YeetMouse kernel module + GUI from upstream master:
 
 - **Daily upstream tracking** at 06:00 UTC — new commits on `master` land here within a day
 - **Pre-build verification** — fail-closed pipeline (eval → build → ELF check) before any push to `main`
 - **Dual-compiler kernel detection** — auto-selects GCC vs LLVM/Clang to match CachyOS LTO and stock kernels
-- **Per-device profiles** — `myModules.input.yeetmouse.devices.<dev>.enable` with bundled G502 libinput HWDB rule (flat-profile, prevents double acceleration)
 - **Two integration paths** — NixOS module (`hardware.yeetmouse`) for module + udev + sensitivity; HM module (`programs.yeetmouse`) for the GUI
 
 ## Components
 
 | Component | Type | Description |
 |---|---|---|
-| `yeetmouse-driver` | kernel module | Hardware-level mouse acceleration in kernel space (zero userspace latency); 8 modes (linear, power, classic, motivity, synchronous, natural, jump, LUT) |
-| `yeetmouse-gui` | package | Real-time curve adjustment GUI |
-| `nixosModules.default` | NixOS module | `hardware.yeetmouse.*` (sensitivity + mode params) + `myModules.input.yeetmouse.*` (toggles + per-device profiles like G502) + udev + systemd service for immediate parameter apply on mouse connect |
-| `homeManagerModules.default` | HM module | GUI installation for the user |
+| `yeetmouse` (default) | package | Kernel module + `bin/yeetmouse` GUI; 8 modes (linear, power, classic, motivity, synchronous, natural, jump, LUT) |
+| `nixosModules.default` | NixOS module | `hardware.yeetmouse.*` (sensitivity + mode params) + udev + systemd service for immediate parameter apply on mouse connect |
+| `homeManagerModules.default` | HM module | `programs.yeetmouse` — installs the GUI for the user |
 
 ## Features
 
@@ -44,7 +42,6 @@ A Nix flake that builds the YeetMouse kernel module + GUI from upstream master w
 - GUI for real-time curve adjustment
 - 8 acceleration modes: linear, power, classic, motivity, synchronous, natural, jump, LUT
 - Dual compiler detection (GCC and LLVM/Clang for CachyOS LTO kernels)
-- G502 libinput HWDB integration (flat profile to prevent double acceleration)
 - Udev + systemd service for immediate parameter application on mouse connect
 
 <!-- BEGIN generated:installation -->
@@ -93,12 +90,8 @@ nixpkgs.overlays = [ inputs.yeetmouse.overlays.default ];
 Enable in your host config:
 
 ```nix
-myModules.input.yeetmouse = {
-  enable = true;
-  devices.g502.enable = true;
-};
-
 hardware.yeetmouse = {
+  enable = true;
   sensitivity = 0.5;
   mode.jump = {
     acceleration = 2.0;
@@ -121,8 +114,7 @@ cd yeetmouse-nix
 nix develop                       # enter dev shell, installs pre-commit hooks
 nix fmt                           # format flake + module
 nix flake check --no-build        # eval check
-nix build                         # build the kernel module against the active kernel
-nix build .#yeetmouse-gui         # build the GUI
+nix build                         # build the kernel module + GUI against the active kernel
 ```
 
 CI runs the same chain daily via `.github/workflows/update.yml`; manual updates rarely needed.
@@ -132,7 +124,4 @@ CI runs the same chain daily via `.github/workflows/update.yml`; manual updates 
 This packaging flake is [GPL-2.0](./LICENSE) licensed (matches upstream — kernel module licenses propagate). Upstream YeetMouse is [GPL-2.0](https://github.com/AndyFilter/YeetMouse/blob/master/LICENSE).
 
 <!-- BEGIN generated:footer -->
----
-
-*Maintained as part of the [Daaboulex](https://github.com/Daaboulex) NixOS ecosystem.*
 <!-- END generated:footer -->

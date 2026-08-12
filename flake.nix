@@ -35,7 +35,7 @@
       };
 
       perSystem =
-        { pkgs, ... }:
+        { pkgs, system, ... }:
         let
           yeetmouse = pkgs.callPackage ./package.nix {
             inherit (pkgs.linuxPackages) kernel;
@@ -46,6 +46,13 @@
           packages = {
             default = yeetmouse;
             inherit yeetmouse;
+          };
+          checks.module-eval-nixos = inputs.std.lib.nixosModuleCheck {
+            inherit (inputs) nixpkgs;
+            inherit system;
+            overlays = [ inputs.self.overlays.default ];
+            module = ./module.nix;
+            config.hardware.yeetmouse.enable = true;
           };
         };
     };
