@@ -45,3 +45,8 @@ venv/
 .ruff_cache/
 .rumdl_cache/
 .mypy_cache/
+/htmlcov/
+/coverage/
+/build/
+/dist/
+/target/
