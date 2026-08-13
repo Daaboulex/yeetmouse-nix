@@ -27,7 +27,7 @@
 
       flake = {
         nixosModules.default = import ./module.nix;
-        homeManagerModules.default = import ./hm-module.nix;
+        homeModules.default = import ./hm-module.nix;
 
         overlays.default = final: _prev: {
           inherit (inputs.self.packages.${final.stdenv.hostPlatform.system}) yeetmouse;

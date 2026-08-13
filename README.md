@@ -34,7 +34,7 @@ A Nix flake that builds the YeetMouse kernel module + GUI from upstream master:
 |---|---|---|
 | `yeetmouse` (default) | package | Kernel module + `bin/yeetmouse` GUI; 8 modes (linear, power, classic, motivity, synchronous, natural, jump, LUT) |
 | `nixosModules.default` | NixOS module | `hardware.yeetmouse.*` (sensitivity + mode params) + udev + systemd service for immediate parameter apply on mouse connect |
-| `homeManagerModules.default` | HM module | `programs.yeetmouse` — installs the GUI for the user |
+| `homeModules.default` | HM module | `programs.yeetmouse` — installs the GUI for the user |
 
 ## Features
 
@@ -103,7 +103,7 @@ hardware.yeetmouse = {
 For the GUI, add the Home Manager module:
 
 ```nix
-home-manager.sharedModules = [ inputs.yeetmouse.homeManagerModules.default ];
+home-manager.sharedModules = [ inputs.yeetmouse.homeModules.default ];
 ```
 
 ## Development
