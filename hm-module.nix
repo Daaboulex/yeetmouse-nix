@@ -7,7 +7,7 @@
 }:
 let
   cfg = config.programs.yeetmouse;
-  hasDriver = (osConfig.hardware.yeetmouse.enable or false);
+  hasDriver = osConfig.hardware.yeetmouse.enable or false;
 in
 {
   options.programs.yeetmouse = {
