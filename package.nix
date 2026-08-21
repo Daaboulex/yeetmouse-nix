@@ -92,21 +92,45 @@ buildStdenv.mkDerivation {
     '';
 
   postPatch = ''
-    # Convert informational printk to KERN_INFO
-    sed -i 's/printk(/printk(KERN_INFO /g' driver/driver.c
+    landed() {
+      grep -qF -- "$2" "$1" || {
+        echo "[FAIL] $3 -- the edit did not apply to $1 (expected to find: $2). Upstream moved; re-aim it."
+        exit 1
+      }
+      echo "[OK] $3"
+    }
+    present() {
+      grep -qF -- "$2" "$1" || {
+        echo "[FAIL] $3 -- the text this edit rewrites is absent from $1 (looked for: $2). The patch is obsolete: drop it or re-aim it."
+        exit 1
+      }
+    }
+    gone() {
+      if grep -qF -- "$2" "$1"; then
+        echo "[FAIL] $3 -- the edit did not replace it in $1 (still present: $2). Upstream moved; re-aim it."
+        exit 1
+      fi
+      echo "[OK] $3"
+    }
 
-    # Convert Error printk to KERN_ERR
+    # driver.c needs no severity rewrite: upstream uses pr_info/pr_warn, which
+    # already expand to printk(KERN_INFO/KERN_WARNING.
+    # accel_modes.c still logs through bare printk().
     sed -i 's/printk(/printk(KERN_ERR /g' driver/accel_modes.c
+    landed driver/accel_modes.c 'printk(KERN_ERR ' "accel_modes.c: printk tagged KERN_ERR"
 
     # Fix GUI hardcoded limits for Smoothness (exponent)
     # Allow Jump mode to show 0.00
+    present gui/main.cpp 'DragFloat("##Exp_Param", &params[selected_mode].exponent, 0.0, 0.01' "main.cpp: DragFloat exponent minimum"
     sed -i 's/DragFloat("##Exp_Param", \&params\[selected_mode\].exponent, 0.0, 0.01/DragFloat("##Exp_Param", \&params\[selected_mode\].exponent, 0.0, 0.0/g' gui/main.cpp
-    sed -i 's/SliderFloat("##Exp_Param", \&params\[selected_mode\].exponent, 0.0, 1/SliderFloat("##Exp_Param", \&params\[selected_mode\].exponent, 0.0, 1/g' gui/main.cpp
+    gone gui/main.cpp 'exponent, 0.0, 0.01' "main.cpp: DragFloat exponent minimum lowered to 0.0"
 
-    # Hide "Running without root privileges" warning and force has_privilege = true
-    sed -i 's/if (getuid()) {/if (false) { \/\/ getuid check disabled/g' gui/main.cpp
+    # Hide the "Running without root privileges" warning and force has_privilege.
+    # Upstream no longer calls getuid(); has_privilege is set directly.
     sed -i 's/has_privilege = false;/has_privilege = true; \/\/ forced/g' gui/main.cpp
+    landed gui/main.cpp 'has_privilege = true; // forced' "main.cpp: has_privilege forced true"
     sed -i 's/ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/if(false) ImGui::GetForegroundDrawList()->AddText(ImVec2(10, ImGui::GetWindowHeight() - 40),/g' gui/main.cpp
+    landed gui/main.cpp 'if(false) ImGui::GetForegroundDrawList()->AddText' "main.cpp: privilege warning hidden"
 
     # Exclude uinput virtual devices from driver_match — prevents yeetmouse from
     # attaching to StreamController/etc. virtual input devices that report BUS_USB
@@ -119,6 +143,7 @@ buildStdenv.mkDerivation {
     sed -i '/handle other non-HID devices/,/return false;/{
       /if (dev->id.bustype == BUS_USB/c\    if ((dev->id.bustype == BUS_USB || dev->id.bustype == BUS_VIRTUAL) \&\& dev->id.vendor != 0x0001) {
     }' driver/driver.c
+    landed driver/driver.c 'dev->id.vendor != 0x0001' "driver.c: uinput virtual devices excluded from driver_match"
   '';
 
   postInstall = ''
