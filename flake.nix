@@ -30,7 +30,15 @@
         homeModules.default = import ./hm-module.nix;
 
         overlays.default = final: _prev: {
-          inherit (inputs.self.packages.${final.stdenv.hostPlatform.system}) yeetmouse;
+
+          yeetmouse = final.callPackage ./package.nix {
+
+            inherit (final.linuxPackages) kernel;
+
+            inherit (inputs) yeetmouse-src;
+
+          };
+
         };
       };
 
