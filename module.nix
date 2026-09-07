@@ -452,7 +452,7 @@ let
             data = lib.mkOption {
               type = lib.types.listOf lutVec;
               default = [ ];
-              apply = ls: map (t: "${toString t [ 0 ]},${toString t [ 1 ]}") ls;
+              apply = ls: map (lib.concatMapStringsSep "," toString) ls;
               description = "Lookup Table data (a list of `[x, y]` points)";
             };
           };
