@@ -156,11 +156,11 @@
     "yeetmouse-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1791470265,
-        "narHash": "sha256-iQnG/OjfNUo736uYAxBX49baxi5CHLMdhHUjYVmVxKs=",
+        "lastModified": 1791472211,
+        "narHash": "sha256-m8zVctLrJEu0mRwb8lGi263/uhOMWoHCBr3g4GyznyQ=",
         "owner": "Daaboulex",
         "repo": "YeetMouse",
-        "rev": "611eaa0d85958fb14a1c9073d861539b954dec45",
+        "rev": "6520d08b39f9058af254e5180b77d7fed6fa784f",
         "type": "github"
       },
       "original": {
