@@ -1,0 +1,46 @@
+name: Watch official YeetMouse and KWin
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  official:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail when official YeetMouse has commits the fork lacks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          compare="$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/AndyFilter/YeetMouse/compare/Daaboulex:YeetMouse:daaboulex...AndyFilter:YeetMouse:master")"
+          ahead="$(jq -er .ahead_by <<< "$compare")"
+          echo "AndyFilter/YeetMouse master has $ahead commit(s) that Daaboulex/YeetMouse daaboulex lacks"
+          if [ "$ahead" -gt 0 ]; then
+            jq -r '.commits[] | "  " + .sha[0:7] + " " + (.commit.message | split("\n")[0])' <<< "$compare"
+            echo "::error::official YeetMouse moved: merge its $ahead new commit(s) into the fork's daaboulex branch"
+            exit 1
+          fi
+
+  kwin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail once KWin can hand a custom curve to libinput
+        run: |
+          api=https://invent.kde.org/api/v4/projects/plasma%2Fkwin
+          state="$(curl -fsS "$api/merge_requests/6937" | jq -er .state)"
+          tag="$(curl -fsS "$api/repository/tags?order_by=updated&per_page=1" | jq -er '.[0].name')"
+          header="$(curl -fsS "https://invent.kde.org/plasma/kwin/-/raw/$tag/src/backends/libinput/device.h")"
+          echo "kwin!6937 is $state; the newest tag is $tag"
+          if [ "$state" = merged ] || [[ "$header" == *pointerAccelerationCustomPoints* ]]; then
+            echo "::error::KWin can take custom curves (kwin!6937 $state, tag $tag): check the final property names against the fork's gui/Profiles.cpp and enable the touchpad curve"
+            exit 1
+          fi
