@@ -25,9 +25,9 @@ The pin for the fork's `daaboulex` branch. The package and the NixOS module are 
 `nix/package.nix` and `nix/module.nix`; this flake fetches them at the pinned commit and adds
 nothing of its own, so the fork stays the one place they change.
 
-- **Follows the fork** - `update.yml` moves the pin to the newest `daaboulex` commit daily and
+- **Follows the fork** - [`update.yml`](.github/workflows/update.yml) moves the pin to the newest `daaboulex` commit daily and
   builds it before pushing.
-- **Watches official YeetMouse** - `watch.yml` fails daily while `AndyFilter/YeetMouse` master
+- **Watches official YeetMouse** - [`watch.yml`](.github/workflows/watch.yml) fails daily while `AndyFilter/YeetMouse` master
   has commits the fork lacks, listing them, so they get merged into `daaboulex`.
 - **Watches KWin** - the same workflow fails once KWin can hand a custom acceleration curve to
   libinput (kwin!6937), the switch the fork's touchpad curves wait for.
@@ -89,7 +89,7 @@ seeds the fork's Raw Accel fixture, so a converter or module regression fails it
 ## License
 
 This packaging flake is [GPL-2.0](./LICENSE) licensed, matching YeetMouse, whose kernel module
-licence propagates.
+licence propagates. The `yeetmouse` package declares no `meta.license`.
 
 <!-- BEGIN generated:footer -->
 <!-- END generated:footer -->
