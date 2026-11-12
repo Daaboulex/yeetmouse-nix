@@ -1,54 +1,29 @@
-# yeetmouse-nix
+# YeetMouse for NixOS
 
-<!-- BEGIN generated:badges -->
-[![CI](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml/badge.svg)](https://github.com/Daaboulex/yeetmouse-nix/actions/workflows/ci.yml)
-[![NixOS unstable](https://img.shields.io/badge/NixOS-unstable-78C0E8?logo=nixos&logoColor=white)](https://nixos.org)
-[![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-blue.svg)](./LICENSE)
-<!-- END generated:badges -->
+YeetMouse is a kernel module that adds configurable mouse acceleration. This
+flake packages the
+[Daaboulex fork](https://github.com/Daaboulex/YeetMouse/tree/daaboulex) of
+[AndyFilter/YeetMouse](https://github.com/AndyFilter/YeetMouse) for NixOS, with
+Raw Accel parity, profiles, per-device curves and a GUI. It suits someone who
+wants an acceleration curve on NixOS, drawn in the GUI or carried over from
+Raw Accel.
 
-YeetMouse for NixOS, built from the Daaboulex fork.
+It builds for `x86_64-linux` and `aarch64-linux`. The checks build the package
+and the settings of a NixOS configuration seeded from a Raw Accel file. None of
+them loads the driver or moves a pointer, so how it behaves on a real mouse is
+not tested here.
 
-<!-- BEGIN generated:upstream -->
-## Upstream
+## What you get
 
-| | |
-|---|---|
-| **Project** | [Daaboulex/YeetMouse](https://github.com/Daaboulex/YeetMouse/tree/daaboulex), a fork of [AndyFilter/YeetMouse](https://github.com/AndyFilter/YeetMouse) |
-| **License** | GPL-2.0 |
-| **Tracked** | Git commits (daaboulex) |
+- `nixosModules.default` adds the `hardware.yeetmouse` options. It builds the
+  driver for the kernel your system boots, loads it and installs the programs.
+- `packages.yeetmouse`, also the default package, holds the kernel module,
+  `yeetmousectl` and the `yeetmouse` GUI.
+- `overlays.default` adds `pkgs.yeetmouse`, built against `linuxPackages`.
 
-<!-- END generated:upstream -->
+## Install
 
-## What Is This?
-
-The pin for the fork's `daaboulex` branch. The package and the NixOS module are the fork's own
-`nix/package.nix` and `nix/module.nix`; this flake fetches them at the pinned commit and adds
-nothing of its own, so the fork stays the one place they change.
-
-- **Follows the fork** - [`update.yml`](.github/workflows/update.yml) moves the pin to the newest `daaboulex` commit daily and
-  builds it before pushing.
-- **Watches official YeetMouse** - [`watch.yml`](.github/workflows/watch.yml) fails daily while `AndyFilter/YeetMouse` master
-  has commits the fork lacks, listing them, so they get merged into `daaboulex`.
-- **Watches KWin** - the same workflow fails once KWin can hand a custom acceleration curve to
-  libinput (kwin!6937), the switch the fork's touchpad curves wait for.
-- **Both architectures** - x86_64-linux and aarch64-linux; the fork's fixed point is portable C.
-
-## Components
-
-| Component | Type | Description |
-|---|---|---|
-| `yeetmouse` (default) | package | Kernel module, `yeetmousectl` and the `yeetmouse` GUI, built for the kernel it is given |
-| `nixosModules.default` | NixOS module | `hardware.yeetmouse`: seeds `/etc/yeetmouse.conf`, profiles and `devices.conf` from files or a Raw Accel export, loads them at boot; the GUI owns them afterwards |
-| `overlays.default` | overlay | `pkgs.yeetmouse` against `linuxPackages` |
-
-The fork's README and `nix/module.nix` option descriptions are the reference for the driver,
-the profiles, per-device curves, Raw Accel import and export, and `yeetmousectl run` for
-per-game profiles.
-
-<!-- BEGIN generated:installation -->
-## Installation
-
-Add as a flake input:
+Add the flake:
 
 ```nix
 {
@@ -59,12 +34,47 @@ Add as a flake input:
 }
 ```
 
-Then import the module and enable it:
+Then import the module and switch it on:
 
 ```nix
 { inputs, ... }:
 {
   imports = [ inputs.yeetmouse.nixosModules.default ];
+  hardware.yeetmouse.enable = true;
+}
+```
+
+With nothing else set, the driver runs the module's default, a linear curve at
+sensitivity 1.
+
+The module creates a `yeetmouse` group that owns the driver's device and
+`/etc/yeetmouse`. Put your user in it to change settings without root.
+
+## Use
+
+`yeetmouse` opens the GUI. `yeetmousectl` is the command-line tool.
+
+```bash
+yeetmousectl run <profile> -- <command>
+```
+
+That starts a program on one profile, which is how a game gets its own.
+
+To start from settings you already have, hand the module files. These options
+sit under `hardware.yeetmouse`.
+
+| Option | What it is for |
+|---|---|
+| `rawAccel` | A Raw Accel 1.7 `settings.json`, converted when the system is built |
+| `defaultConfig` | A config file in `yeetmousectl`'s format, for every mouse `devices.conf` does not list |
+| `profiles` | Named profiles, one file each |
+| `devices` | A `devices.conf`, one line per mouse |
+| `mode`, `sensitivity` | The curve and the base sensitivity written as Nix options, used when no file gives the default config |
+
+From a Raw Accel export:
+
+```nix
+{
   hardware.yeetmouse = {
     enable = true;
     rawAccel = ./settings.json;
@@ -72,24 +82,53 @@ Then import the module and enable it:
 }
 ```
 
-<!-- END generated:installation -->
+Each file is copied into `/etc/yeetmouse` only where none exists yet, and
+applied each time the driver loads. After that the GUI owns the files.
 
-## Development
+Every option, with its type and default: [docs/OPTIONS.md](docs/OPTIONS.md).
+
+The fork's
+[README](https://github.com/Daaboulex/YeetMouse/tree/daaboulex) and the option
+descriptions in its `nix/module.nix` are the reference for the driver, the
+profiles, per-device curves, Raw Accel import and export, and `yeetmousectl run`
+for per-game profiles.
+
+## Known limits
+
+- A file already in `/etc/yeetmouse` is never replaced. Changing an option
+  later does not change a machine that was already seeded.
+- `rawAccel` fails the build when the file holds a setting YeetMouse cannot
+  reproduce exactly.
+- Only the module builds the driver for the kernel you boot. The overlay and
+  the flake's own package build against `linuxPackages`.
+- The fork's touchpad curves wait for KWin to be able to hand a custom
+  acceleration curve to libinput.
+
+## When something does not work
+
+The build runs `yeetmousectl check` over the files you give it. A file it
+rejects fails the build.
+
+On a running machine the settings are applied by one service:
 
 ```bash
-nix develop
-nix fmt
-nix flake check --no-eval-cache
-nix build
+systemctl status yeetmouse.service
 ```
 
-`nix flake check` builds the package for the runner's system and a NixOS configuration that
-seeds the fork's Raw Accel fixture, so a converter or module regression fails it.
+The fork's
+[NixOS notes](https://github.com/Daaboulex/YeetMouse/blob/daaboulex/nix/README.md)
+say how to make a changed option take effect and how to load a new driver
+without a reboot.
+
+## More
+
+- [docs/DESIGN.md](docs/DESIGN.md): why this flake is only a pin, what the
+  module does on a machine, why KWin is watched
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md): building, the checks, how the pin
+  moves, what is tracked upstream
+- [SECURITY.md](SECURITY.md): how to report a vulnerability
 
 ## License
 
 This packaging flake is [GPL-2.0](./LICENSE) licensed, matching YeetMouse, whose kernel module
 licence propagates. The `yeetmouse` package declares no `meta.license`.
-
-<!-- BEGIN generated:footer -->
-<!-- END generated:footer -->

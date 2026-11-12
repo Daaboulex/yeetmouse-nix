@@ -36,7 +36,14 @@
         "x86_64-linux"
         "aarch64-linux"
       ];
-      imports = [ inputs.std.flakeModules.base ];
+      imports = [
+        inputs.std.flakeModules.base
+        {
+          perSystem.std.option-reference = {
+            "NixOS module" = inputs.self.nixosModules.default;
+          };
+        }
+      ];
 
       flake = {
         nixosModules.default = module;
